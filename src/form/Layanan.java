@@ -5,8 +5,13 @@
 package form;
 
 import component.ThemeColor;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import dialog.TambahItemDialog;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 /**
  *
@@ -17,226 +22,154 @@ public class Layanan extends javax.swing.JPanel {
     /**
      * Creates new form Layanan
      */
+    
     public Layanan() {
         initComponents();
-        
-        tableLayanan.setModel(
-            new javax.swing.table.DefaultTableModel(
-                new Object[][]{},
-                new String[]{
-                    "Nama Item", "Tipe", "Harga", "Stok/Durasi", "Status", "Aksi"
-                }
-            ) {
-                @Override
-                public boolean isCellEditable(
-                        int row,
-                        int column
-                ) {
-                    return column == 5;
-                }
-            }
+
+        setBorder(
+                javax.swing.BorderFactory.createEmptyBorder(0, 0, 40, 40)
         );
+
+        tableLayanan.setModel(
+                new javax.swing.table.DefaultTableModel(
+                        new Object[][]{},
+                        new String[]{
+                            "ID", "Nama Item", "Tipe", "Harga", "Stok/Durasi", "Status", "Aksi"
+                        }
+                ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 6;
+            }
+        }
+        );
+
+        // Sembunyikan kolom ID
+        tableLayanan.getColumnModel().getColumn(0).setMinWidth(0);
+        tableLayanan.getColumnModel().getColumn(0).setMaxWidth(0);
+        tableLayanan.getColumnModel().getColumn(0).setWidth(0);
+
+        // satu blok renderer — index sudah geser +1 karena ada kolom ID
+        tableLayanan.getColumnModel().getColumn(2).setCellRenderer(new table.TypeTableCellRenderer());
+        tableLayanan.getColumnModel().getColumn(4).setCellRenderer(new table.StockTableCellRenderer());
+        tableLayanan.getColumnModel().getColumn(5).setCellRenderer(new table.StatusTableCellRenderer());
+        tableLayanan.getColumnModel().getColumn(6).setCellRenderer(new table.ItemActionCellRenderer());
+        tableLayanan.getColumnModel().getColumn(6).setCellEditor(new table.ItemActionCellEditor());
 
         // search
         txtSearch.setHint("Cari item...");
 
         // header
         tableLayanan.getTableHeader().setOpaque(false);
-
-        tableLayanan.getTableHeader().setBackground(
-                ThemeColor.SURFACE_2
-        );
-
-        tableLayanan.getTableHeader().setForeground(
-                ThemeColor.TEXT_MUTED
-        );
-
-        tableLayanan.getTableHeader().setFont(
-                new java.awt.Font(
-                        "SansSerif", java.awt.Font.BOLD, 50
-                )
-        );
-
+        tableLayanan.getTableHeader().setBackground(ThemeColor.SURFACE_2);
+        tableLayanan.getTableHeader().setForeground(ThemeColor.TEXT_MUTED);
+        tableLayanan.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 13));
         tableLayanan.getTableHeader().setBorder(null);
-
-        tableLayanan.getTableHeader().setPreferredSize(
-                new java.awt.Dimension(0, 40)
-        );
+        tableLayanan.getTableHeader().setPreferredSize(new java.awt.Dimension(0, 40));
 
         // table
-        tableLayanan.setBackground(
-                ThemeColor.SURFACE
-        );
-
-        tableLayanan.setForeground(
-                ThemeColor.TEXT
-        );
-
+        tableLayanan.setBackground(ThemeColor.SURFACE);
+        tableLayanan.setForeground(ThemeColor.TEXT);
         tableLayanan.setRowHeight(56);
-
-        tableLayanan.setFont(
-                new java.awt.Font("SansSerif", java.awt.Font.PLAIN,  14)
-        );
-
-        tableLayanan.setSelectionBackground(
-                ThemeColor.SURFACE
-        );
-
-        tableLayanan.setSelectionForeground(
-                ThemeColor.TEXT
-        );
-
-        tableLayanan.setIntercellSpacing(
-                new java.awt.Dimension(0, 0)
-        );
-
+        tableLayanan.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 13));
+        tableLayanan.setSelectionBackground(ThemeColor.SURFACE);
+        tableLayanan.setSelectionForeground(ThemeColor.TEXT);
+        tableLayanan.setIntercellSpacing(new java.awt.Dimension(0, 0));
         tableLayanan.setShowGrid(false);
 
         // scroll
-        scrollTable.getVerticalScrollBar().setUI(
-                new component.ModernScrollBarUI()
-        );
+        scrollTable.getVerticalScrollBar().setUI(new component.ModernScrollBarUI());
+        scrollTable.getVerticalScrollBar().setPreferredSize(new java.awt.Dimension(10, 0));
 
-        scrollTable.getVerticalScrollBar()
-                .setPreferredSize(
-                        new java.awt.Dimension(10, 0)
-                );
-
-       // container
-        tableContainer.setBackground(
-                ThemeColor.SURFACE
-        );
-
+        // container
+        tableContainer.setBackground(ThemeColor.SURFACE);
         tableContainer.setRadius(20);
-
-        tableContainer.setBorder(
-                javax.swing.BorderFactory
-                        .createEmptyBorder(15,  15, 15, 15)
-        );
+        tableContainer.setBorder(javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         // dropdown
         cbTier.setFocusable(false);
-
         cbTier.setBorder(null);
-
-        cbTier.setBackground(
-                ThemeColor.BACKGROUND
-        );
-
-        cbTier.setForeground(
-                ThemeColor.TEXT
-        );
+        cbTier.setBackground(ThemeColor.BACKGROUND);
+        cbTier.setForeground(ThemeColor.TEXT);
 
         // scrollpane
-        scrollTable.getViewport().setBackground(
-                ThemeColor.SURFACE
-        );
-
-        scrollTable.setBackground(
-                ThemeColor.SURFACE
-        );
-
+        scrollTable.getViewport().setBackground(ThemeColor.SURFACE);
+        scrollTable.setBackground(ThemeColor.SURFACE);
         scrollTable.setBorder(null);
+        
+        scrollTable.setCorner(javax.swing.JScrollPane.LOWER_RIGHT_CORNER, new javax.swing.JPanel() {
+            {
+                setBackground(ThemeColor.SURFACE);
+            }
+        });
+        scrollTable.setCorner(javax.swing.JScrollPane.LOWER_LEFT_CORNER, new javax.swing.JPanel() {
+            {
+                setBackground(ThemeColor.SURFACE);
+            }
+        });
+        scrollTable.setCorner(javax.swing.JScrollPane.UPPER_RIGHT_CORNER, new javax.swing.JPanel() {
+            {
+                setBackground(ThemeColor.SURFACE);
+            }
+        });
 
         // fix table
-        tableLayanan.getTableHeader()
-                .setReorderingAllowed(false);
+        tableLayanan.getTableHeader().setReorderingAllowed(false);
+        tableLayanan.getTableHeader().setResizingAllowed(false);
+        tableLayanan.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
-        tableLayanan.getTableHeader()
-                .setResizingAllowed(false);
-
-        tableLayanan.setAutoResizeMode(
-                JTable.AUTO_RESIZE_OFF
-        );
-
-        int[] widths = {420, 160, 180, 220, 160, 248};
-
-        for (int i = 0; i < widths.length; i++) {
-
-            tableLayanan.getColumnModel()
-                    .getColumn(i)
-                    .setPreferredWidth(widths[i]);
-
-            tableLayanan.getColumnModel()
-                    .getColumn(i)
-                    .setMinWidth(widths[i]);
-
-            tableLayanan.getColumnModel()
-                    .getColumn(i)
-                    .setMaxWidth(widths[i]);
-        }
-
-       // renderer
-
-        // tipe
-        tableLayanan.getColumnModel()
-                .getColumn(1)
-                .setCellRenderer(
-                        new table.TypeTableCellRenderer()
-                );
-
-        // stok
-        tableLayanan.getColumnModel()
-                .getColumn(3)
-                .setCellRenderer(
-                        new table.StockTableCellRenderer()
-                );
-
-        // status
-        tableLayanan.getColumnModel()
-                .getColumn(4)
-                .setCellRenderer(
-                        new table.StatusTableCellRenderer()
-                );
-
-        // aksi
-        tableLayanan.getColumnModel()
-                .getColumn(5)
-                .setCellRenderer(
-                        new table.ActionCellRenderer()
-                );
-
-        tableLayanan.getColumnModel()
-                .getColumn(5)
-                .setCellEditor(
-                        new table.ActionCellEditor()
-                );
-
-        // =========================
-        // DATA DUMMY
-        // =========================
-        DefaultTableModel model =
-                (DefaultTableModel)
-                        tableLayanan.getModel();
-
-        model.addRow(new Object[]{
-            "Gentleman Haircut",
-            "Layanan",
-            "Rp 45.000",
-            "30 menit",
-            "Aktif",
-            ""
-        });
-
-        model.addRow(new Object[]{
-            "Pomade Suavecito",
-            "Produk",
-            "Rp 85.000",
-            "24 pcs",
-            "Aktif",
-            ""
-        });
-
-        model.addRow(new Object[]{
-            "Shampoo Makarizo",
-            "Produk",
-            "Rp 55.000",
-            "Stok 3",
-            "Nonaktif",
-            ""
-        });
-        
+        loadData();
     }
+
+    public void loadData() {
+        DefaultTableModel model = (DefaultTableModel) tableLayanan.getModel();
+        model.setRowCount(0);
+
+        try {
+            Connection conn = Koneksi.getKoneksi();
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM item");
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String nama = rs.getString("nama");
+                String deskripsi = rs.getString("deskripsi");
+                String tipe = rs.getString("tipe");
+                String harga = "Rp " + rs.getString("harga");
+                String stokDurasi;
+
+                if (tipe.equals("service")) {
+                    tipe = "Layanan";
+                    stokDurasi = rs.getString("durasi");
+                } else {
+                    tipe = "Produk";
+                    int stokInt = rs.getInt("stok"); 
+                    stokDurasi = stokInt + " pcs";  
+                }
+
+                String status = rs.getString("status");
+
+                String namaHtml = "<html><div style='text-align:center;'>"
+                        + "<b>" + nama + "</b><br>"
+                        + "<span style='color:gray;'>" + deskripsi + "</span>"
+                        + "</div></html>";
+
+                model.addRow(new Object[]{
+                    id, // kolom 0 — ID tersembunyi
+                    namaHtml, // kolom 1 — Nama Item
+                    tipe, // kolom 2
+                    harga, // kolom 3
+                    stokDurasi,// kolom 4
+                    status, // kolom 5
+                    "" // kolom 6 — Aksi
+                });
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+    }
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -247,25 +180,22 @@ public class Layanan extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        txtSearch = new component.ModernTextField();
-        cbTier = new javax.swing.JComboBox<>();
         btnTambah = new component.ModernButton();
         tableContainer = new component.RoundedPanel();
         scrollTable = new javax.swing.JScrollPane();
         tableLayanan = new component.ModernTable();
+        txtSearch = new component.ModernTextField();
+        cbTier = new javax.swing.JComboBox<>();
 
         setBackground(new java.awt.Color(10, 10, 11));
 
-        txtSearch.setPreferredSize(new java.awt.Dimension(250, 40));
-        txtSearch.addActionListener(this::txtSearchActionPerformed);
-
-        cbTier.setForeground(new java.awt.Color(255, 255, 255));
-        cbTier.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Semua Item", "Layanan (Jasa)", "Produk (Barang)" }));
-        cbTier.setPreferredSize(new java.awt.Dimension(140, 40));
-        cbTier.addActionListener(this::cbTierActionPerformed);
-
         btnTambah.setText("+ Tambah Item");
         btnTambah.addActionListener(this::btnTambahActionPerformed);
+
+        tableContainer.setMaximumSize(new java.awt.Dimension(0, 0));
+
+        scrollTable.setBorder(null);
+        scrollTable.setToolTipText("");
 
         tableLayanan.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -281,12 +211,20 @@ public class Layanan extends javax.swing.JPanel {
         tableContainer.setLayout(tableContainerLayout);
         tableContainerLayout.setHorizontalGroup(
             tableContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(scrollTable, javax.swing.GroupLayout.DEFAULT_SIZE, 1388, Short.MAX_VALUE)
+            .addComponent(scrollTable)
         );
         tableContainerLayout.setVerticalGroup(
             tableContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(scrollTable, javax.swing.GroupLayout.DEFAULT_SIZE, 565, Short.MAX_VALUE)
+            .addComponent(scrollTable, javax.swing.GroupLayout.DEFAULT_SIZE, 605, Short.MAX_VALUE)
         );
+
+        txtSearch.setPreferredSize(new java.awt.Dimension(250, 40));
+        txtSearch.addActionListener(this::txtSearchActionPerformed);
+
+        cbTier.setForeground(new java.awt.Color(255, 255, 255));
+        cbTier.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Semua Tipe", "Layanan (Jasa)", "Produk (Barang)" }));
+        cbTier.setPreferredSize(new java.awt.Dimension(140, 40));
+        cbTier.addActionListener(this::cbTierActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -295,14 +233,14 @@ public class Layanan extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGap(40, 40, 40)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(tableContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(cbTier, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(btnTambah, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(tableContainer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(42, Short.MAX_VALUE))
+                        .addComponent(btnTambah, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(393, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -313,8 +251,7 @@ public class Layanan extends javax.swing.JPanel {
                     .addComponent(cbTier, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnTambah, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(tableContainer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(18, Short.MAX_VALUE))
+                .addComponent(tableContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -327,7 +264,16 @@ public class Layanan extends javax.swing.JPanel {
     }//GEN-LAST:event_cbTierActionPerformed
 
     private void btnTambahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTambahActionPerformed
-        // TODO add your handling code here:
+        // TODO add your handling code here:       
+        java.awt.Frame parent
+                = (java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(this);
+
+        TambahItemDialog dialog = new TambahItemDialog(parent, true);
+        dialog.setLocationRelativeTo(parent);
+        dialog.setVisible(true); 
+
+        loadData();
+        
     }//GEN-LAST:event_btnTambahActionPerformed
 
 
