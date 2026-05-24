@@ -17,56 +17,39 @@ public class MemberInCart extends javax.swing.JPanel {
         initComponents();
     }
     
-    public void setData(String nama, int poin) {
+    public void setData(String nama, int poin, String tier) {
         lblNamaMember.setText(nama);
         lblTotalPoin.setText(String.format("%,d", poin).replace(',', '.') + " poin");
+        lblTier.setText(tier);
 
-        // Logika Penentuan Tier dan Diskon Kelipatan 3%
-        String namaTier = "";
-        int diskon = 0;
-        int maxPoin = 0;
-        java.awt.Color warnaBg = null;
+        int diskon = 3;
+        int maxPoin = 400;
+        java.awt.Color warnaBg = new java.awt.Color(205, 127, 50);
 
-        if (poin < 200) {
-            namaTier = "Bronze"; diskon = 0; maxPoin = 200; 
+        if (tier.equalsIgnoreCase("Bronze")) {
+            diskon = 3; maxPoin = 400; 
             warnaBg = new java.awt.Color(205, 127, 50);
-        } else if (poin < 500) {
-            namaTier = "Silver"; diskon = 3; maxPoin = 500; 
+        } else if (tier.equalsIgnoreCase("Silver")) {
+            diskon = 6; maxPoin = 1000; 
             warnaBg = new java.awt.Color(192, 192, 192);
-        } else if (poin < 1000) {
-            namaTier = "Gold"; diskon = 6; maxPoin = 1000; 
+        } else if (tier.equalsIgnoreCase("Gold")) {
+            diskon = 10; maxPoin = poin; // Jika Gold sudah full
             warnaBg = new java.awt.Color(255, 215, 0);
-        } else if (poin < 2000) {
-            namaTier = "Platinum"; diskon = 9; maxPoin = 2000; 
-            warnaBg = new java.awt.Color(229, 228, 226);
-        } else {
-            namaTier = "Diamond"; diskon = 12; maxPoin = poin; // Poin maksimal dinamis
-            warnaBg = new java.awt.Color(185, 242, 255);
         }
 
-        lblTier.setText(namaTier);
-        lblTier.setForeground(warnaBg); // Menyamakan warna teks tier dengan warna tiernya
-        
-        if (diskon > 0) {
-            lblDiskon.setText("Diskon " + diskon + "% aktif");
-            lblDiskon.setForeground(new java.awt.Color(76, 175, 130)); // Warna hijau jika ada diskon
-        } else {
-            lblDiskon.setText("Belum ada diskon");
-            lblDiskon.setForeground(new java.awt.Color(204, 204, 204));
-        }
+        lblTier.setForeground(warnaBg);
+        lblDiskon.setText("Diskon " + diskon + "% aktif");
+        lblDiskon.setForeground(new java.awt.Color(76, 175, 130)); 
 
-        // --- Logika Progress Bar Tier ---
-        double percent = (double) poin / maxPoin;
+        double percent = tier.equalsIgnoreCase("Gold") ? 1.0 : ((double) poin / maxPoin);
         if (percent > 1.0) percent = 1.0;
-        int fillWidth = (int) (300 * percent); // Asumsi lebar maksimum panel adalah 300px
-
+        
+        int fillWidth = (int) (300 * percent);
         PanelPersentaseTier.removeAll();
         PanelPersentaseTier.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
-        
         javax.swing.JPanel barIsi = new javax.swing.JPanel();
         barIsi.setBackground(warnaBg);
         barIsi.setPreferredSize(new java.awt.Dimension(fillWidth, 4));
-        
         PanelPersentaseTier.add(barIsi);
         PanelPersentaseTier.revalidate();
         PanelPersentaseTier.repaint();

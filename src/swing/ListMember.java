@@ -17,44 +17,23 @@ public class ListMember extends javax.swing.JPanel {
         initComponents();
     }
     
-    public void setData(String nama, String telepon, int kunjungan, int poin) {
+    public void setData(String nama, String no_hp, int kunjungan, int poin, String tier) {
         lblNamaMember.setText(nama);
-        lblTelepon.setText(telepon);
+        lblTelepon.setText(no_hp);
         lblJmlKunjungan.setText(kunjungan + " kunjungan");
         lblPoin.setText(poin + " poin");
+        lblTier.setText(tier);
 
-        // Logika Tier Berdasarkan Poin
-        String namaTier = "";
-        java.awt.Color warnaBg = null;
-        java.awt.Color warnaTeks = new java.awt.Color(255, 255, 255);
-
-        if (poin < 200) {
-            namaTier = "Bronze";
-            warnaBg = new java.awt.Color(205, 127, 50);
-        } else if (poin < 500) {
-            namaTier = "Silver";
-            warnaBg = new java.awt.Color(192, 192, 192);
-            warnaTeks = new java.awt.Color(0, 0, 0);
-        } else if (poin < 1000) {
-            namaTier = "Gold";
-            warnaBg = new java.awt.Color(255, 215, 0);
-            warnaTeks = new java.awt.Color(0, 0, 0);     
-        } else if (poin < 2000) {
-            namaTier = "Platinum";
-            warnaBg = new java.awt.Color(229, 228, 226);
-            warnaTeks = new java.awt.Color(0, 0, 0);     
-        } else {
-            namaTier = "Diamond";
-            warnaBg = new java.awt.Color(185, 242, 255);
-            warnaTeks = new java.awt.Color(0, 0, 0);     
+        if (tier.equalsIgnoreCase("Bronze")) {
+            badgeTier.setBackground(new java.awt.Color(205, 127, 50));
+            lblTier.setForeground(new java.awt.Color(255, 255, 255));
+        } else if (tier.equalsIgnoreCase("Silver")) {
+            badgeTier.setBackground(new java.awt.Color(192, 192, 192));
+            lblTier.setForeground(new java.awt.Color(0, 0, 0));
+        } else { // Gold
+            badgeTier.setBackground(new java.awt.Color(255, 215, 0));
+            lblTier.setForeground(new java.awt.Color(0, 0, 0));
         }
-
-        // Terapkan ke label dan panel badge
-        lblTier.setText(namaTier);
-        badgeTier.setBackground(warnaBg);
-        lblTier.setForeground(warnaTeks);
-        
-        // Memberi border agar setiap komponen list tidak menyatu
         this.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(50, 50, 50)));
     }
 
