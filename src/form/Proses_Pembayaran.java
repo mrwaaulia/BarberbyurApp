@@ -31,14 +31,16 @@ public class Proses_Pembayaran extends javax.swing.JFrame {
     private String namaKapster;
     private Kasir formKasirAsal;
     private String noNota;
+    private int poinAwalDB;
 
     /**
      * Creates new form Proses_Pembayaran
      */
     public Proses_Pembayaran(List<model.CartItemModel> cart, int idMember, String namaPelanggan, 
                              String kapster, int subtotal, int diskon, int total, 
-                             String metode, int poin, Kasir kasirAsal) {
+                             String metode, int poinAwal, int poin, Kasir kasirAsal) {
         initComponents();
+        this.poinAwalDB = poinAwal;
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         
@@ -606,7 +608,8 @@ public class Proses_Pembayaran extends javax.swing.JFrame {
             String sqlDetail = "INSERT INTO detail_transaksi (id_transaksi, id_item, jumlah, harga_saat_ini) VALUES (?, ?, ?, ?)";
             PreparedStatement psDetail = conn.prepareStatement(sqlDetail);
             
-            PreparedStatement psUpdateStok = conn.prepareStatement("UPDATE item SET stok = stok - ? WHERE id = ? AND tipe = 'product'");
+            String sqlStok = "UPDATE item SET status = CASE WHEN (stok - ?) <= 0 THEN 'non-aktif' ELSE status END, stok = stok - ? WHERE id = ? AND tipe = 'product'";
+            PreparedStatement psUpdateStok = conn.prepareStatement(sqlStok);
 
             for (model.CartItemModel c : cartData) {
                 psDetail.setInt(1, idTransaksiBaru);
@@ -617,8 +620,9 @@ public class Proses_Pembayaran extends javax.swing.JFrame {
                 
                 // Kurangi stok jika item adalah product
                 if (c.produk.tipe.equalsIgnoreCase("product")) {
-                    psUpdateStok.setInt(1, c.qty);
-                    psUpdateStok.setInt(2, c.produk.id);
+                    psUpdateStok.setInt(1, c.qty);       // Tanda tanya pertama (untuk cek case when)
+                    psUpdateStok.setInt(2, c.qty);       // Tanda tanya kedua (untuk pengurangan stok)
+                    psUpdateStok.setInt(3, c.produk.id); // Tanda tanya ketiga (untuk id)
                     psUpdateStok.addBatch();
                 }
             }
@@ -627,9 +631,20 @@ public class Proses_Pembayaran extends javax.swing.JFrame {
 
             // Update Poin Pelanggan (Jika Member)
             if (idMember != 0 && poinDidapat > 0) {
-                PreparedStatement psPoin = conn.prepareStatement("UPDATE pelanggan SET point = point + ? WHERE id = ?");
-                psPoin.setInt(1, poinDidapat);
-                psPoin.setInt(2, idMember);
+                int poinBaru = poinAwalDB + poinDidapat;
+                String tierBaru = "Bronze";
+                
+                // Kalkulasi Tier Baru berdasarkan Total Poin Akhir
+                if (poinBaru >= 1000) {
+                    tierBaru = "Gold";
+                } else if (poinBaru >= 400) {
+                    tierBaru = "Silver";
+                }
+                
+                PreparedStatement psPoin = conn.prepareStatement("UPDATE pelanggan SET point = ?, tier = ? WHERE id = ?");
+                psPoin.setInt(1, poinBaru);
+                psPoin.setString(2, tierBaru);
+                psPoin.setInt(3, idMember);
                 psPoin.executeUpdate();
             }
 

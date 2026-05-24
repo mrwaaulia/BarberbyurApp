@@ -82,7 +82,7 @@ public class Pilih_Member extends javax.swing.JFrame {
         try {
             java.sql.Connection conn = Koneksi.getKoneksi();
             
-            String sql = "SELECT p.id, p.nama, p.no_hp, p.point AS poin, "
+            String sql = "SELECT p.id, p.nama, p.no_hp, p.point AS poin, p.tier, "
                        + "(SELECT COUNT(*) FROM transaksi t WHERE t.id_pelanggan = p.id) AS kunjungan "
                        + "FROM pelanggan p "
                        + "WHERE p.nama LIKE ? OR p.no_hp LIKE ?";
@@ -102,14 +102,15 @@ public class Pilih_Member extends javax.swing.JFrame {
                     rs.getString("nama"),
                     rs.getString("no_hp"),
                     rs.getInt("kunjungan"),
-                    rs.getInt("poin")
+                    rs.getInt("poin"), 
+                    rs.getString("tier")
                 );
 
                 System.out.println("Memuat member: " + p.nama);
 
                 swing.ListMember item = new swing.ListMember();
                 // Passing data ke GUI List Member
-                item.setData(p.nama, p.no_hp, p.kunjungan, p.poin);
+                item.setData(p.nama, p.no_hp, p.kunjungan, p.poin, p.tier);
 
                 // FIX LAYOUT SWING
                 item.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 60));
@@ -120,7 +121,7 @@ public class Pilih_Member extends javax.swing.JFrame {
                 item.addMouseListener(new java.awt.event.MouseAdapter() {
                     @Override
                     public void mouseClicked(java.awt.event.MouseEvent evt) {
-                        formKasir.setMemberTerpilih(p.id, p.nama, p.poin);
+                        formKasir.setMemberTerpilih(p.id, p.nama, p.poin, p.tier);
                         dispose(); 
                     }
                 });
@@ -256,7 +257,7 @@ public class Pilih_Member extends javax.swing.JFrame {
 
     private void btnTanpaMemberActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTanpaMemberActionPerformed
         // TODO add your handling code here:
-        formKasir.setMemberTerpilih(0, "Pilih Member", 0); // Set default
+        formKasir.setMemberTerpilih(0, "Pilih Member", 0, "Bronze"); // Set default
         dispose(); // Tutup pop up
     }//GEN-LAST:event_btnTanpaMemberActionPerformed
 

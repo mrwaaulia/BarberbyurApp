@@ -23,6 +23,7 @@ public class Kasir extends javax.swing.JPanel {
     private int idMemberTerpilih = 0;
     private String namaMemberTerpilih = "";
     private int poinMemberTerpilih = 0;
+    private String tierMemberTerpilih = "Bronze";
     
     private void terapkanGayaTombolBayar(javax.swing.JToggleButton btn) {
         java.awt.Color bgAktif = new java.awt.Color(201, 168, 76);
@@ -165,11 +166,10 @@ public class Kasir extends javax.swing.JPanel {
 
             // Buka Jframe Proses Pembayaran dan passing datanya
             new Proses_Pembayaran(
-                listKeranjang, 
-                idMemberTerpilih, 
+                listKeranjang, idMemberTerpilih, 
                 namaMemberTerpilih.isEmpty() ? "Umum" : namaMemberTerpilih, 
-                kapsterTerpilih, 
-                subtotal, diskon, total, metode, poinDidapat, this
+                kapsterTerpilih, subtotal, diskon, total, 
+                metode, poinMemberTerpilih, poinDidapat, this
             ).setVisible(true);
         });
     }
@@ -251,14 +251,29 @@ public class Kasir extends javax.swing.JPanel {
 
     // LOGIKA MENAMBAH ITEM KE KERANJANG
     private void tambahKeKeranjang(Item p) {
+        // 1. Cek dari awal, kalau stok sudah 0 jangan diizinkan masuk
+        if (p.tipe.equalsIgnoreCase("product") && p.stok <= 0) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Maaf, stok " + p.nama + " sudah habis!");
+            return;
+        }
+
         boolean sudahAda = false;
         for (CartItemModel cart : listKeranjang) {
             if (cart.produk.id == p.id) {
+                // 2. Validasi Limit Stok (Maksimal qty = stok)
+                if (cart.produk.tipe.equalsIgnoreCase("product")) {
+                    if (cart.qty + 1 > cart.produk.stok) {
+                        javax.swing.JOptionPane.showMessageDialog(this, "Maksimal stok untuk " + cart.produk.nama + " adalah " + cart.produk.stok);
+                        return;
+                    }
+                }
+                
                 cart.qty += 1; 
                 sudahAda = true;
                 break;
             }
         }
+        
         if (!sudahAda) {
             listKeranjang.add(new CartItemModel(p, 1));
         }
@@ -291,8 +306,16 @@ public class Kasir extends javax.swing.JPanel {
                 
                 // Logika jika tombol (+) diklik
                 itemCart.getBtnTambah().addActionListener(e -> {
+                    // Validasi Limit Stok saat dipencet dari dalam keranjang
+                    if (cartData.produk.tipe.equalsIgnoreCase("product")) {
+                        if (cartData.qty + 1 > cartData.produk.stok) {
+                            javax.swing.JOptionPane.showMessageDialog(this, "Maksimal stok untuk " + cartData.produk.nama + " adalah " + cartData.produk.stok);
+                            return;
+                        }
+                    }
+                    
                     cartData.qty++;
-                    renderKeranjang(); // Render ulang setelah qty nambah
+                    renderKeranjang();
                 });
                 
                 // 4. Logika jika tombol (-) diklik
@@ -331,24 +354,27 @@ public class Kasir extends javax.swing.JPanel {
         PilihKapster.setSelectedIndex(0);
         
         // 3. Reset Pelanggan / Member ke posisi "Tanpa Member"
-        setMemberTerpilih(0, "Pilih Member", 0);
+        setMemberTerpilih(0, "Pilih Member", 0, "Bronze");
         
         // 4. Render ulang tampilan keranjang (otomatis hitung ulang total harga jadi Rp 0)
         renderKeranjang();
+        
+        jalankanFilter();
     }
     
     // Method ini akan dipanggil dari pop up Pilih_Member
-    public void setMemberTerpilih(int id, String nama, int poin) {
+    public void setMemberTerpilih(int id, String nama, int poin, String tier) {
         this.idMemberTerpilih = id;
         this.namaMemberTerpilih = nama;
         this.poinMemberTerpilih = poin;
+        this.tierMemberTerpilih = tier;
         
         btnPilihMember.setText(id == 0 ? "Pilih Member" : nama);
         btnPilihMember.setForeground(id == 0 ? java.awt.Color.WHITE : new java.awt.Color(201, 168, 76));
         
         if (id != 0) {
             // Isi data nama dan poin ke panel
-            panelMemberInfo.setData(nama, poin);
+            panelMemberInfo.setData(nama, poin, tier);
             // Munculkan panelnya
             panelMemberInfo.setVisible(true);
         } else {
@@ -370,10 +396,11 @@ public class Kasir extends javax.swing.JPanel {
         
         // Cek diskon berdasarkan poin
         int persenDiskon = 0;
-        if (poinMemberTerpilih >= 2000) persenDiskon = 12;
-        else if (poinMemberTerpilih >= 1000) persenDiskon = 9;
-        else if (poinMemberTerpilih >= 500) persenDiskon = 6;
-        else if (poinMemberTerpilih >= 200) persenDiskon = 3;
+        if (idMemberTerpilih != 0) {
+            if (tierMemberTerpilih.equalsIgnoreCase("Gold")) persenDiskon = 10;
+            else if (tierMemberTerpilih.equalsIgnoreCase("Silver")) persenDiskon = 6;
+            else if (tierMemberTerpilih.equalsIgnoreCase("Bronze")) persenDiskon = 3;
+        }
 
         int nominalDiskon = (subtotal * persenDiskon) / 100;
         int totalBayar = subtotal - nominalDiskon;
