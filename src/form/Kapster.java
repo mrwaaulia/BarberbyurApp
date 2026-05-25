@@ -63,7 +63,7 @@ public class Kapster extends javax.swing.JPanel {
         tableKapster.getColumnModel().getColumn(7).setCellRenderer(new table.StatusTableCellRenderer());
         tableKapster.getColumnModel().getColumn(8).setCellRenderer(new table.ItemActionCellRenderer());
         tableKapster.getColumnModel().getColumn(8).setCellEditor(new table.KapsterActionCellEditor());
-        
+
         // lebar kolom
         tableKapster.getColumnModel().getColumn(1).setPreferredWidth(180);
         tableKapster.getColumnModel().getColumn(2).setPreferredWidth(160);
@@ -73,7 +73,7 @@ public class Kapster extends javax.swing.JPanel {
         tableKapster.getColumnModel().getColumn(6).setPreferredWidth(120);
         tableKapster.getColumnModel().getColumn(7).setPreferredWidth(80);
         tableKapster.getColumnModel().getColumn(8).setPreferredWidth(100);
-        
+
         // search
         txtSearch.setHint("Cari kapster...");
         txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
@@ -99,7 +99,7 @@ public class Kapster extends javax.swing.JPanel {
         tableKapster.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 13));
         tableKapster.getTableHeader().setBorder(null);
         tableKapster.getTableHeader().setPreferredSize(new java.awt.Dimension(0, 40));
-        
+
         // table
         tableKapster.setBackground(ThemeColor.SURFACE);
         tableKapster.setForeground(ThemeColor.TEXT);
@@ -112,7 +112,7 @@ public class Kapster extends javax.swing.JPanel {
         tableKapster.getTableHeader().setReorderingAllowed(false);
         tableKapster.getTableHeader().setResizingAllowed(false);
         tableKapster.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        
+
         // scroll
         scrollTable.getVerticalScrollBar().setUI(new component.ModernScrollBarUI());
         scrollTable.getVerticalScrollBar().setPreferredSize(new java.awt.Dimension(10, 0));
@@ -140,13 +140,13 @@ public class Kapster extends javax.swing.JPanel {
         tableContainer.setBackground(ThemeColor.SURFACE);
         tableContainer.setRadius(20);
         tableContainer.setBorder(javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        
+
         ((component.RoundedPanel) cardPoin).setRadius(20);
         ((component.RoundedPanel) cardPoin3).setRadius(20);
         ((component.RoundedPanel) cardPoin4).setRadius(20);
-        
+
         loadData();
-        
+
         loadStats();
         
         new javax.swing.Timer(2000, e -> refreshDashboard()).start();
@@ -230,7 +230,7 @@ public class Kapster extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(this, "Gagal memuat data kapster:\n" + e.getMessage());
         }
     }
-    
+
     public void loadStats() {
         try {
             Connection conn = Koneksi.getKoneksi();
@@ -265,18 +265,13 @@ public class Kapster extends javax.swing.JPanel {
             rs2.close();
             ps2.close();
 
-            // 3. Rata-rata Komisi per Kapster
-            String sql3 = """
-                SELECT COALESCE(AVG(komisi_per_kapster), 0) AS avg_komisi
-                FROM (
-                    SELECT COALESCE(SUM(t.total * k.komisi_persen / 100), 0) AS komisi_per_kapster
-                    FROM kapster k
-                    LEFT JOIN transaksi t ON t.id_kapster = k.id
-                    GROUP BY k.id
-                ) x
-            """;
+            // AVG Komisi Kapster
+            PreparedStatement ps3 = conn.prepareStatement(
+                    "SELECT COALESCE("
+                    + "  (SELECT SUM(t.total * k.komisi_persen / 100) FROM transaksi t JOIN kapster k ON t.id_kapster = k.id) "
+                    + "  / (SELECT COUNT(*) FROM kapster), 0) AS avg_komisi"
+            );
 
-            PreparedStatement ps3 = conn.prepareStatement(sql3);
             ResultSet rs3 = ps3.executeQuery();
 
             if (rs3.next()) {
