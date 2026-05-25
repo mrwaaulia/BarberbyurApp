@@ -375,7 +375,7 @@ public class TambahKapsterDialog extends javax.swing.JDialog {
 
             JOptionPane.showMessageDialog(this, "Kapster berhasil ditambahkan!");
             dispose();
-            Kasir.refreshItem();
+            Kasir.refreshKapster();
 
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Gagal menyimpan: " + e.getMessage());
